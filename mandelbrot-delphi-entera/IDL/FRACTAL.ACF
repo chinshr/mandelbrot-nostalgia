@@ -1,0 +1,18 @@
+/*---------------------------------------------------------------------------------
+ *
+ *  fractal.acf
+ *
+ *  Copyright (c) 1998 Inprise Corporation. All Rights Reserved. 
+ *
+ *---------------------------------------------------------------------------------*/
+
+[auto_handle] interface fractal
+{
+
+    get_next(
+	[ode_type_constrained_array(outwidth)] row
+    );
+
+}
+
+

@@ -1,0 +1,10 @@
+RPC type: dce    Service: fractal.idl
+Parsing fractal.idl
+Generating Delphi3.0 client code for fractal.idl
+	client\fractal_hc.pas
+	client\fractal_c.pas
+Generating C1.0 server code for fractal.idl
+	server\fractal_s.h
+	server\fractal_s.c
+Generating C1.0 server main code
+	server\fractalsm.c

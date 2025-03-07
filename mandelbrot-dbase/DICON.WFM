@@ -1,0 +1,53 @@
+** END HEADER -- do not remove this line*
+* Generated on 11/21/94
+*
+LOCAL oForm
+oForm = NEW DICONFORM()
+oForm.Open()
+RETURN
+
+CLASS DICONFORM OF FORM
+   this.Top =          0.7646
+   this.Left =          4.5
+   this.Text = "Form"
+   this.Width =         96.833
+   this.Height =         23.2344
+   this.HelpFile = ""
+   this.HelpId = ""
+
+   DEFINE RECTANGLE RECTANGLE1 OF THIS;
+       PROPERTY; 
+         Top          1,;
+         Left          1.832,;
+         Border .T.,;
+         ColorNormal "N/W",;
+         BorderStyle          1,;
+         Text "",;
+         Width         66.668,;
+         Height         17.4697
+
+   DEFINE RECTANGLE RECTANGLE2 OF THIS;
+       PROPERTY; 
+         Top          3.7637,;
+         Left          2.832,;
+         Border .T.,;
+         ColorNormal "N/W",;
+         Text "",;
+         OldStyle .T.,;
+         Width          2.001,;
+         Height          0.7061
+
+   DEFINE RECTANGLE RECTANGLE3 OF THIS;
+       PROPERTY; 
+         Top          3.7637,;
+         Left          4.832,;
+         Border .T.,;
+         ColorNormal "N/W",;
+         Text "",;
+         OldStyle .T.,;
+         Width          2.001,;
+         Height          0.7061
+
+
+ENDCLASS
+

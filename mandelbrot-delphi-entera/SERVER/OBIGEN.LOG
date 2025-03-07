@@ -1,0 +1,16 @@
+usage: obigen [-h] [-v] [-N] [-t] [-l file] [-P ddp] [-o dir] [-e dir] [-r dir] [ -I dir [-I dir] ...] -p ddp -D idl -d idl [ -d idl ...] [ -c lang [ -c lang ...]] [ -s lang [ -s lang ...]]
+  -h help
+  -v version
+  -N do not use default import dirs
+  -l log file
+  -P template ddp file
+  -o output dir
+  -e client output dir
+  -r server output dir
+  -I import dir
+  -p ddp file
+  -D service idl file
+  -d idl file
+  -c client language
+  -s server language
+  -t server code template

@@ -1,0 +1,17 @@
+[DCEApp]
+UseNaming=0
+UseSecurity=0
+LogFile=server.log
+MaxLogSize=1000000
+LogLevel=0
+;Broker=ncacn_ip_tcp:10.186.76.51
+Broker=none
+
+[DCEServer]
+Protseq=tcp
+Verbose=1
+UseEnteraQueue=0
+MaxCalls=1
+MaxQueueSize=10
+IsDedicated=0
+

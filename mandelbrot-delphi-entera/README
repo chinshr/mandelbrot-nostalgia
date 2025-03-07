@@ -1,0 +1,85 @@
+                              --------------------
+                              Entera Fractal Demo
+                                  Entera 4.01
+                              --------------------
+
+===============
+1  Introduction
+=============== 
+
+This demo calculates a mandelbrot set. Depending on the client settings the
+fractal will be calculated remotely.  This demo is supposed to demonstrate
+the performance behavior of Entera 4.x. A report shows the runtime behavior
+of the demo after the calculation of the mandelbrot set.
+
+================
+2  Prerequisites
+================
+
+   Install Entera 4.01 (important: apply the Delphi 4.01 patch)
+
+On Win32: 
+
+   Install Delphi 4.0
+   Install either Borland C++ Builder (1 or 2) or MS C++ (4 or 5)
+
+On Unix:
+
+   Make sure that the C compilers are installed correctly.   
+
+Important: Please add all of these products to the environment path. For
+           Entera have the ODEDIR variable set to the Entera directory.   
+
+======================
+3  Compile the Sources
+======================
+
+Generate stubs with:
+
+  obigen -p fractal.ddp
+
+Compile the server (change to server directory):
+
+   On Unix:
+
+      make
+
+   On Win32 with Borland C++ Builder:
+   
+      make -f bcc.mak
+
+   On Win32 with MS C++:
+
+      nmake -f mscc.mak
+
+Compile the client (change to client directory):
+
+   make -f dcc.mak
+
+===============
+4  Start Server
+===============
+
+Change to server directory. Modify your fractal.dap attribute file
+appropriately (see Entera Reference Manual):
+
+   On Unix:
+
+      fracsrv &
+
+   On Win32:
+
+      start fracsrv
+
+===============
+5  Start Client
+===============
+
+Change to client directory. Modify your fractal.dap attribute file
+appropriately (see Entera Reference Manual):
+
+   Fractal
+
+A user interface will show up on screen. If you start the process, the
+fractal will be calculated on the server. A statistical report will give
+details about the runtime behavior of the demo.

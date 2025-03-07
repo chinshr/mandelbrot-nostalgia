@@ -1,0 +1,238 @@
+*********************************************************************
+*
+* Program   :    DMNDBRT.PRG
+*
+* Author    :    JÅrgen Fe·lmeier
+*
+* Version   :    v1.1
+*
+* Date      :    11/17/1994
+*
+* Info      :    Draws MandelBrot Fractal in a dBASE Form.
+*                To stop the MandelBrot while it is drawing, press
+*                Esc and the Close Button, or Esc twice.
+*
+*********************************************************************
+
+************************************************
+***             Macrodefinition              ***
+************************************************
+#DEFINE RGB(r,g,b)        (BITOR(r,BITOR(BITLSHIFT(g,8),BITLSHIFT(b,16))))
+#DEFINE MAKEWORD(c)       ASC(SUBSTR(c,1)) + BITLSHIFT(ASC(SUBSTR(c,2)),8)
+#DEFINE PALETTEINDEX(i)   (BITOR(01000000,i))
+
+************************************************
+***              dBASE Settings              ***
+************************************************
+CREATE SESSION
+SET TALK OFF
+SET ECHO OFF
+SET LDCHECK OFF
+SET ESCAPE ON
+SET PRECISION TO 19
+SET ESCAPE ON
+ON ESCAPE EscEvent()
+
+************************************************
+***          Variable Declaration            ***
+************************************************
+PUBLIC cAppName,cAppVersion,cAppAuthor,oForm,iPixPerTurpinH,iPixPerTurpinV,EscPressed
+PUBLIC AreaWidth,AreaHeight,iButtonBottomDist,iBorderBottomDist,oTimer
+
+************************************************
+***                 Constants                ***
+************************************************
+cAppName           = "dMANDELBROT"
+cAppVersion        = "v1.1"
+cAppAuthor         = "JÅrgen Fe·lmeier"
+EscPressed         = .F.
+
+************************************************
+***            Extern Prototypes             ***
+************************************************
+EXTERN CHANDLE  CreateDC(CSTRING, CSTRING, CSTRING, CSTRING) GDI.EXE
+EXTERN CHANDLE  GetDC(CHANDLE) USER.EXE
+EXTERN CVOID    GetClientRect(CHANDLE, CPTR) USER.EXE
+EXTERN CLONG    SetPixel(CHANDLE,CINT,CINT,CLONG) GDI.EXE
+EXTERN CHANDLE  GetObject(CHANDLE, CINT, CPTR) GDI.EXE
+EXTERN CVOID    Yield(CVOID) KRNL386.EXE
+
+************************************************
+***                   Main                   ***
+************************************************
+oForm=NEW MNDBRTFORM()
+oForm.Open()
+RETURN
+
+************************************************
+***          External Procedures             ***
+************************************************
+PROCEDURE EscEvent
+  EscPressed=.T.
+  oForm.ACTIONBUTTON.Enabled  = .T.
+RETURN
+
+************************************************
+***            Class Definition              ***
+************************************************
+CLASS MNDBRTFORM OF FORM
+   THIS.Text     = cAppName+" "+cAppVersion
+   THIS.HelpFile = ""
+   THIS.HelpId   = ""
+   THIS.MDI      = .F.
+   THIS.EscExit  = .T.
+   THIS.Top      = 2.7646
+   THIS.Left     = 22.5
+   THIS.Width    = 45.666
+   THIS.Height   = 14.7051
+   THIS.OnOpen   = CLASS::Form_OnOpen
+   THIS.OnSize   = CLASS::Form_OnSize
+
+   NEW RECTANGLE (THIS,"BORDER")
+     THIS.BORDER.ColorNormal      = "N/W"
+     THIS.BORDER.Text             = ""
+     THIS.BORDER.Border           = .T.
+     THIS.BORDER.Top              = 0.4111
+     THIS.BORDER.Left             = 1
+     THIS.BORDER.Width            = 43.5
+     THIS.BORDER.Height           = 11
+     THIS.BORDER.BorderStyle      = 2
+
+   NEW PUSHBUTTON (THIS,"ACTIONBUTTON")
+     THIS.ACTIONBUTTON.Group       = .T.
+     THIS.ACTIONBUTTON.Height      = 2
+     THIS.ACTIONBUTTON.Left        = 15
+     THIS.ACTIONBUTTON.Top         = 12
+     THIS.ACTIONBUTTON.UpBitmap    = "RESOURCE #617"
+     THIS.ACTIONBUTTON.Text        = "&Start"
+     THIS.ACTIONBUTTON.Width       = 14
+     THIS.ACTIONBUTTON.ColorNormal = "N/W"
+     THIS.ACTIONBUTTON.FontBold    = .F.
+     THIS.ACTIONBUTTON.Enabled     = .T.
+     THIS.ACTIONBUTTON.Default     = .T.
+     THIS.ACTIONBUTTON.OnClick     = CLASS::Start_OnClick
+
+   NEW IMAGE (THIS,"DRAWAREA")
+     THIS.DRAWAREA.Datasource     = ""
+     THIS.DRAWAREA.Top            = 0.6465
+     THIS.DRAWAREA.Left           = 1.666
+     THIS.DRAWAREA.Width          = 42.167
+     THIS.DRAWAREA.Height         = 10.5293
+
+************************************************
+***                  Methods                 ***
+************************************************
+   PROCEDURE Form_OnOpen
+     LOCAL cRect
+     cRect = SPACE(8)
+     GetClientRect(THIS.DRAWAREA.hWnd,cRect)
+   * Pixels in Width and Heigth of the area
+     AreaWidth  = MAKEWORD(SUBSTR(cRect, 5)) - MAKEWORD(SUBSTR(cRect, 1))
+     AreaHeight = MAKEWORD(SUBSTR(cRect, 7)) - MAKEWORD(SUBSTR(cRect, 3))
+   * Calculation Pixels/Turpin
+     iPixPerTurpinH=AreaWidth/THIS.DRAWAREA.WIDTH                    && Not used in
+     iPixPerTurpinV=AreaHeight/THIS.DRAWAREA.HEIGHT                  && Code
+     iButtonBottomDist=THIS.Height-THIS.ACTIONBUTTON.Height-THIS.ACTIONBUTTON.Top
+     iBorderBottomDist=THIS.Height-THIS.BORDER.Height-THIS.BORDER.Top
+   RETURN
+
+   PROCEDURE Start_OnClick
+   * Change Button Proberties
+     Form.ACTIONBUTTON.Text     = "&Close"                           && Change Button
+     Form.ACTIONBUTTON.UpBitmap = "RESOURCE #28"                     && to CLOSE
+   * Following line is not working when ON ESCAPE is set at the same time  
+   * Form.ACTIONBUTTON.Enabled  = .F.                                && Disable Button
+     Form.ACTIONBUTTON.Default  = .F.
+     Form.ACTIONBUTTON.OnClick  = CLASS::Close_OnClick
+   * Draw the fractal
+     CLASS::DrawFractal()
+   RETURN
+
+   PROCEDURE Form_OnSize(nType, Width, Height)
+     CLASS::SizeProberties(Width,Height)
+   RETURN
+
+   PROCEDURE Close_OnClick
+     oTimer.Enabled=.F.
+     Form.Close()
+   RETURN
+   
+   PROCEDURE DrawFractal
+   PUBLIC hDC                                        && Handle
+   PUBLIC u,v,n,nmax,MaxColor                        && Integer
+   PUBLIC x,y,r,i,d,a,b,delta_a,delta_b,imag_u,;
+           imag_o,real_u,real_o,xr,yi                 && Float
+   PUBLIC cRest                                      && Char
+   * Evaluate
+     cRect = SPACE(8)
+     GetClientRect(Form.DRAWAREA.hWnd,cRect)
+   * Pixels in Width and Heigth of the area again
+     AreaWidth  = MAKEWORD(SUBSTR(cRect, 5)) - MAKEWORD(SUBSTR(cRect, 1))
+     AreaHeight = MAKEWORD(SUBSTR(cRect, 7)) - MAKEWORD(SUBSTR(cRect, 3))
+     MaxColor   = 6400                              && Try with other figures
+   * Get a Display Context
+     hDC = GetDC(Form.DRAWAREA.hWnd)
+   * Begin Alogorythm
+     n=0; nmax=100
+     x=0; y=0; r=0; i=0; d=0; v=0; u=0; a=0; b=0; delta_a=0; delta_b=0
+     imag_u=-1.25; imag_o=1.25; real_u=-2; real_o=0.5
+     xr=0; yi=0
+     delta_a=(real_o-real_u)/AreaWidth
+     delta_b=(imag_o-imag_u)/AreaHeight
+     b=imag_u-delta_b
+     u=0
+     oTimer=NEW Timer()
+     oTimer.Interval=2
+     oTimer.OnTimer={;CLASS::LineLoop()}
+     oTimer.Enabled=.T.
+   RETURN
+
+     procedure LineLoop
+     IF u<AreaHeight                                           && Line-loop
+       b=b+delta_b
+       a=real_u-delta_a
+       FOR v=0 TO AreaWidth                                          && Pixel-loop
+         a=a+delta_a
+         n=0; r=xr; i=yi; d=0
+         DO WHILE ((d<4) .AND. (n<>nmax))                            && Iteration loop
+           x=r; y=i
+           r=x*x-y*y+a; i=2*x*y+b
+           d=r*r+i*i
+           n=n+1
+         ENDDO
+         IF n=nmax                                                   && IF maximum Iter.
+           SetPixel(hDC,v,u,0)                                       && THEN set black pixel
+         ELSE
+           SetPixel(hDC,v,u,RGB((MaxColor-MOD(n,MaxColor)+1)^2,;     && ELSE a calc. with MOD
+           (MaxColor-MOD(n,MaxColor)+1)^2,(MaxColor-MOD(n,MaxColor)+1)^2))
+         ENDIF
+         IF EscPressed=.T.                                           && Check if ESC pressed
+           RETURN
+         ENDIF
+       NEXT
+       u=u+1
+     ELSE
+       oTimer.Enabled=.F.
+       Form.ACTIONBUTTON.Enabled  = .T.
+     ENDIF
+
+
+   PROCEDURE SizeProberties(Width, Height)
+   LOCAL TempHeight
+     TempHeight               = Height-iBorderBottomDist-Form.BORDER.Top-;
+                                2*(Form.DRAWAREA.Top-Form.BORDER.Top)
+     IF TempHeight>0.5
+       Form.BORDER.Width      = Width-2*(Form.BORDER.Left)
+       Form.BORDER.Height     = Height-Form.BORDER.Top-iBorderBottomDist
+       Form.DRAWAREA.Width    = Width-2*(Form.DRAWAREA.Left)
+       Form.DRAWAREA.Height   = TempHeight
+       Form.ACTIONBUTTON.Top  = Height-iButtonBottomDist-;
+                                Form.ACTIONBUTTON.Height
+       Form.ACTIONBUTTON.Left = (Width-Form.ACTIONBUTTON.Width)/2
+     ENDIF
+   RETURN
+
+ENDCLASS
+************************************************
+***               End Program                ***
+************************************************

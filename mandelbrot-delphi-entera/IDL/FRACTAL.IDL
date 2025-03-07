@@ -1,0 +1,91 @@
+/*---------------------------------------------------------------------------------
+ *
+ *  fractal.idl
+ *
+ *  Copyright (c) 1998 Inprise Corporation. All Rights Reserved. 
+ *
+ *---------------------------------------------------------------------------------*/
+
+[uuid(61a740ae-9699-11d1-aa8b-00c04fb17a3a), version(1.1), pointer_default(ptr)]
+interface fractal
+{
+    /*** Type Definitions ***/
+
+    typedef unsigned32 hndl_t;
+
+    typedef struct {
+	double imag_min;
+	double imag_max;
+	double real_min;
+	double real_max;
+    } mndset_t;
+
+    typedef struct {
+	[string] char *hostname;
+	[string] char *infrastructur;
+	[string] char *lan;
+	signed16 width;
+	signed16 height;
+	byte iterations;
+	mndset_t mndset;
+	unsigned32 rpc_requests;
+	unsigned32 bytes_received;
+	unsigned32 bytes_sent;
+	unsigned32 rpc_time;
+    } client_data_t;
+
+    typedef struct {
+	[string] char *hostname;
+	unsigned16 handles;
+	unsigned32 rpc_requests;
+	unsigned32 bytes_received;
+	unsigned32 bytes_sent;
+	unsigned32 rpc_time;
+    } server_data_t;
+
+    typedef struct fractal_t {
+	hndl_t handle;
+	signed16 width;
+	signed16 height;
+	byte iterator;
+	double x;
+	double y;
+	double r;
+	double i;
+	signed32 d;
+	signed32 v;
+	signed32 u;
+	double a;
+	mndset_t mndset;
+	double xr;
+	double yi;
+	double delta_a;
+	double delta_b;
+	double b;
+	client_data_t client_data;
+	struct fractal_t *next;
+    } fractal_t;
+
+    /*** RPC Defintions ***/
+
+    hndl_t	    open(
+			[in] client_data_t cd
+		    );
+
+    client_data_t   close(
+			[in] unsigned32 handle
+		    );
+
+    signed32	    get_next(
+			[in] unsigned32 handle,
+			[out] signed32 *outwidth,
+			[out] ode_byte_u_c_str_t* row
+		    );
+
+    signed32	    query_server(
+			[out] server_data_t *server_data
+		    );
+
+}
+
+
